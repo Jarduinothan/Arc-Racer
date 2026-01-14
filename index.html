@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Arc Racer Restart</title>
+  <style>
+    html,body{margin:0;width:100%;height:100%;background:#000;display:flex;justify-content:center;align-items:flex-start;overflow:hidden}
+    canvas{display:block}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
+</head>
+<body>
+<script>
+
+var shipW = 100;
+var shipH = 40;
+var pitch = 0;
+let img;
+
+function preload() {
+  img = loadImage('assets/ship.png');
+}
+
+function setup(){
+  createCanvas(windowWidth, windowHeight);
+  angleMode(DEGREES);
+  image(img, 0, 0);
+}
+
+function draw(){
+  background(0);
+  push();
+  translate(windowWidth/2,windowHeight/2);
+  rotate(-pitch);
+  //Ship
+  noStroke();
+  fill(150,230,150);
+  triangle(0,0,shipW,shipH/2,0,shipH);
+  rotate(12);
+  fill(150,255,255,200);
+  ellipse(shipW/2.5,0,shipW/3.5,shipW/5)
+}
+
+</script>
+</body>
+</html>
