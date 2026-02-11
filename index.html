@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Arc Racer Restart</title>
+  <title>Arc Racer - Index - Good</title>
   <style>
     html,body{margin:0;width:100%;height:100%;background:#000;display:flex;justify-content:center;align-items:flex-start;overflow:hidden}
     canvas{display:block}
@@ -11,41 +11,293 @@
   <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
 </head>
 <body>
-    <img src="Ship.png" alt="Super cool digital painting of a space ship with flames shooting out the back">
-<!--<script>
+<script>
 
-var shipW = 100;
-var shipH = 40;
-var pitch = 0;
-let img;
+//PATH DRAWING
+var bgImg;
+var trail;
+var pathR;
+var pathG;
+var pathB;
 
-function preload() {
-  img = loadImage('ship.png');
-}
+//GAME LAYOUT
+var canvasW = 800;
+var canvasH = 700;
+var flightTopH = 500;
+var pathTopY = 500;
+var pathH = 300;
+
+//AIRPLANE
+var pitch = 1;
+var y = 1000;
+var x = 0;
+var a = 35;
+var p = 142;
+var q = 235;
+var bPad = 20000;
+var finish = 1000;
+
+//TIMER
+var t = 0;
+var tens = 0;
+
+//stars
+var xPositions = []; 
+var yPositions = [];
+
+//START BUTTON
+var mc = false;
+var clearBtnX = 0;
+var clearBtnY = 0;
+var clearBtnW = 0;
+var clearBtnH = 0;
+var startX = 0;
+var startY = 0;
+var oneTime = 0;
+
+//HIGH SCORES
+var highScores = [];
+var z1 = 0;
+var z2 = 1;
 
 function setup(){
-  createCanvas(windowWidth, windowHeight);
+  pathR = random(0,255);
+  pathG = random(0,255);
+  pathB = 255 - min(pathR, pathG);
+  createCanvas(canvasW, canvasH);
   angleMode(DEGREES);
-  image(img, 0, 0);
+  trail = createGraphics(canvasW, canvasH);
+  trail.clear();
+  clearBtnX = 20;
+  clearBtnY = pathTopY + 10;
+  clearBtnW = 170;
+  clearBtnH = 26;
+  t = millis();
+  //sets up random stars    
+for(var g = 0; g < 20; g++){ 
+    xPositions.push(random(0, 800));
+    yPositions.push(random(0, 700));
 }
+  }
 
+//DRAW
 function draw(){
   background(0);
-  push();
-  translate(windowWidth/2,windowHeight/2);
-  rotate(-pitch);
-  //Ship
+  image(trail, 0, 0);
+
+  if(!(x < bPad || y > finish)){
+    noStroke();
+    fill(0, 0, 0);
+    rect(clearBtnX, clearBtnY, clearBtnW, clearBtnH);
+    stroke(0, 221, 255);
+    noFill();
+    rect(clearBtnX, clearBtnY, clearBtnW, clearBtnH);
+    noStroke();
+    fill(0, 255, 30);
+    textSize(14);
+    textAlign(LEFT);
+    text("CLEAR PATHS", clearBtnX + 10, clearBtnY + 18);
+  }
+
+  //draw stars
+    //pulls values from array and animates the stars
+    for(var i = 0; i < yPositions.length; i++){ 
+        fill(235, 252, 0);
+        ellipse(xPositions[i], yPositions[i], 3, 3);
+       	xPositions[i] += -cos(-pitch)*max(sqrt(y)/50-1,0)-0.1;
+	yPositions[i] += -sin(-pitch)*max(sqrt(y)/50-1,0);
+	//xPositions[i] += -((90 - abs(pitch))/90)*y/1000;
+	//yPositions[i] += (pitch/90)*y/1000;
+
+
+        //sends the stars back to the top and assigns a new y position
+	if( xPositions[i] < -5){               
+               	xPositions[i] = 800;
+		yPositions[i] = random(0,700);
+	} else if( xPositions[i] > 805){               
+               	xPositions[i] = 0;
+		yPositions[i] = random(0,700);
+        } else if( yPositions[i] > 705){
+		yPositions[i] = 0;
+		xPositions[i] = random(0,800);
+	} else if( yPositions[i] < -5){
+		yPositions[i] = 700;
+		xPositions[i] = random(0,800);
+	}
+    }
+  
   noStroke();
-  fill(150,230,150);
-  triangle(0,0,shipW,shipH/2,0,shipH);
-  rotate(12);
-  fill(150,255,255,200);
-  ellipse(shipW/2.5,0,shipW/3.5,shipW/5)
+//***~***~ SHIP ~***~***
+  fill(6, 156, 16);
+  triangle(200 + p + cos(-pitch)*a, 50 + q + sin(-pitch)*a,
+           200 + p + cos(-pitch +160)*a, 50 + q + sin(-pitch + 160)*a,
+           200 + p + cos(-pitch + 200)*a, 50 + q + sin(-pitch + 200)*a);
+
+  fill(0, 120, 255);
+  ellipse(200 + p + cos(-pitch + 180)*(a*0.55) + (15*cos(-pitch) - (-7)*sin(-pitch)), 50 + q + sin(-pitch + 180)*(a*0.55) + (15*sin(-pitch) + (-7)*cos(-pitch)), a*0.45, a*0.28);
+
+ //PITCH & FLIGHT
+if (pitch > 181){ pitch = pitch - 360;}
+if (pitch < -181){ pitch = pitch + 360;}
+if (keyIsDown(UP_ARROW)) pitch += 1;
+if (keyIsDown(DOWN_ARROW)) pitch -= 1;
+
+if (keyIsDown(RIGHT_ARROW)) {
+  if (pitch > 180) pitch += 1;
+  else if (pitch > 1) pitch -= 1;
+  else pitch = 0;
 }
 
-</script> -->
+if (keyIsDown(LEFT_ARROW)) {
+  if (pitch > 180) pitch -= 1;
+  else if (pitch > 1) pitch += 1;
+}
+
+pitch = ((pitch % 360) + 360) % 360;
+
+  //TEXT Y ALTIMETER
+  textAlign(LEFT);
+  textSize(32);
+  fill(119, 224, 136);
+  text(round(y), 238, 100);
+
+  //TEXT X ODOMETER
+  textAlign(CENTER);
+  text(round(x), 400, 425);
+
+  //TEXT CLOCK AND RESTART
+  stroke(0, 221, 255);
+  fill(0, 0, 0);
+  rect(334, 70, 130, 50);
+  fill(252, 0, 0);
+  text(tens, 400, 100);
+  textSize(14);
+  fill(0, 255, 30);
+  text("----restart----", 400, 117);
+  noStroke();
+
+  //LANDING PADS CLOSE VIEW
+  fill(207, 201, 27);
+  rect(100 + p -x, q + y - 940, 200, 40);
+  fill(189, 185, 64);
+  rect(150 + bPad -x +p, 60 + q + y - finish, 150 + x, 50);
+  fill(0, 0, 0);
+  textSize(24);
+  textAlign(LEFT);
+  text("A Pad", p -x +200, q + 90 + y-finish);
+  text("B Pad", bPad -x +p +400, q + y - finish +95);
+  text("You Overshot", bPad -x +p +1400, q + y - finish +95);
+  text("Seriously? Were you going like 100k px/s? ", bPad -x +p +5000, q + y - finish +95);
+  
+  //LANDING PADS ZOOMED OUT VIEW
+  fill(189, 185, 64);
+  rect(25,675,27,20);
+  rect(640,675,180,20);
+
+  //GAME PLAY STATE
+  if(x < bPad || y > finish){
+      y += (sin(pitch)*y/100)*startY;
+      y = max(1, y);
+      x += (cos(-pitch)*y/100)*startX;
+
+      tens = ((millis() - t)/1000);
+
+      trail.strokeWeight(5);
+      trail.stroke(pathR, pathG, pathB, 255);
+      trail.point(40 + x * 0.03, pathTopY + 175 + (finish - y)/75);
+
+  } else {
+      if(z1 < 1){
+          highScores.push(tens, pathR, pathG, pathB);
+          z1 = 1;
+      }
+  }
+
+  //END GAME STATE
+  if(!(x < bPad || y > finish)){
+    fill(68, 87, 145);
+    noStroke();
+    var rowH = 18;
+    rect(500, 90, 140, (highScores.length/4)*rowH + 18);
+    for(var w = 0; w < highScores.length; w += 4){
+        var yRow = 108 + (w/4)*rowH;
+        fill(highScores[w+1], highScores[w+2], highScores[w+3]);
+        rect(500, yRow-12, 10, 12);
+        rect(500, yRow-16, 120, 20);
+        fill(0);
+        textSize(16);
+        textAlign(CENTER);
+        text(highScores[w], 575, yRow);
+    }
+    textSize(20);
+    fill(pathR, pathG, pathB, 255);
+    textAlign(CENTER);
+    text("Your Scores", 564, 85);
+  }
+
+  if(mc === false){
+    stroke(0, 221, 255);
+    fill(0, 0, 0);
+    rect(334, 70, 130, 50);
+    fill(252, 0, 0);
+    textSize(24);
+    textAlign(CENTER);
+    text("START", 400, 100);
+  }
+}
+
+//MOUSE
+function mouseClicked(){
+  if(!(x < bPad || y > finish)){
+    if(mouseX > clearBtnX && mouseX < clearBtnX + clearBtnW && mouseY > clearBtnY && mouseY < clearBtnY + clearBtnH){
+        trail.clear();
+        return;
+    }
+  }
+
+    if(mouseX > 334 && mouseX < 464 && oneTime === 0){
+      t = millis();
+      mc = true;
+      startY = 1;
+      startX = 1;
+      oneTime = 1;
+  }else if(mouseX > 334 && mouseX < 464 && oneTime === 1){
+      pathR = (pathR + int(random(0,41))) % 256;
+      pathG = (pathG + int(random(0,41))) % 256;
+      pathB = (pathB + int(random(0,41))) % 256;
+      x = 0;
+      y = finish;
+      startY = 0;
+      startX = 0;
+      oneTime = 0;
+      mc = false;
+      z1 = 0;
+  }
+}
+
+function keyPressed(){
+  if(keyCode === 32){
+    if(oneTime === 0){
+      t = millis();
+      mc = true;
+      startY = 1;
+      startX = 1;
+      oneTime = 1;
+    }else{
+      pathR = (pathR + int(random(0,41))) % 256;
+      pathG = (pathG + int(random(0,41))) % 256;
+      pathB = (pathB + int(random(0,41))) % 256;
+      x = 0;
+      y = finish;
+      pitch = 1;
+      startY = 0;
+      startX = 0;
+      oneTime = 0;
+      mc = false;
+      z1 = 0;
+    }
+  }
+}
+</script>
 </body>
 </html>
-
-
-
